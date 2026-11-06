@@ -32,6 +32,8 @@ class TaskCreate(BaseModel):
     title: str = Field(min_length=1, max_length=160)
     description: str = Field(min_length=1, max_length=20000)
     priority: int = Field(default=2, ge=1, le=4)
+    agent: str = Field(default="dsh", pattern="^(codex|dsh)$")
+    parent_task_id: str | None = Field(default=None, max_length=32)
 
     @field_validator("title", "description")
     @classmethod
@@ -48,6 +50,8 @@ class TaskRead(BaseModel):
     title: str
     description: str
     status: str
+    agent: str = "dsh"
+    parent_task_id: str | None = None
     priority: int
     created_at: datetime
     updated_at: datetime
@@ -81,3 +85,14 @@ class DashboardRead(BaseModel):
     failed_tasks: int
     tokens: int
     cost_usd: float | None
+
+
+class AgentSettingsPatch(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    codex_model: str | None = Field(default=None, max_length=160)
+    dsh_profile: str | None = Field(default=None, max_length=64)
+
+
+class CodexStart(BaseModel):
+    workspace_id: str = Field(min_length=1, max_length=32)

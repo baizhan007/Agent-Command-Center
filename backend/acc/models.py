@@ -30,10 +30,14 @@ class Task(Base):
     title: Mapped[str] = mapped_column(String(160), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True, nullable=False)
+    agent: Mapped[str] = mapped_column(String(40), default="dsh", index=True, nullable=False)
+    parent_task_id: Mapped[str | None] = mapped_column(ForeignKey("tasks.id", ondelete="SET NULL"), index=True)
     priority: Mapped[int] = mapped_column(Integer, default=2, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, onupdate=now_utc, nullable=False)
     project: Mapped[Project] = relationship(back_populates="tasks")
+    parent: Mapped["Task | None"] = relationship(remote_side="Task.id", back_populates="children")
+    children: Mapped[list["Task"]] = relationship(back_populates="parent")
 
 
 class TaskRun(Base):

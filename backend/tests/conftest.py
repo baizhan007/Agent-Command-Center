@@ -18,6 +18,7 @@ def client(tmp_path, monkeypatch):
 
     monkeypatch.setenv("ACC_ALLOWED_ROOTS", str(tmp_path))
     monkeypatch.setenv("ACC_API_TOKEN", "test-token")
+    monkeypatch.setenv("ACC_DATA_DIR", str(tmp_path / "acc-data"))
     from acc.config import get_settings
     get_settings.cache_clear()
 

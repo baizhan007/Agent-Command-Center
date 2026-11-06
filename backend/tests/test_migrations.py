@@ -59,10 +59,13 @@ def test_legacy_unversioned_database_is_adopted_without_losing_records(tmp_path,
         inspector = inspect(engine)
         assert {"alembic_version", "projects", "tasks", "task_runs"}.issubset(inspector.get_table_names())
         assert "created_outside_roots" in {column["name"] for column in inspector.get_columns("projects")}
+        task_columns = {column["name"] for column in inspector.get_columns("tasks")}
+        assert {"agent", "parent_task_id"}.issubset(task_columns)
         with engine.connect() as connection:
             assert connection.execute(text("SELECT name FROM projects WHERE id='project-1'")).scalar_one() == "Legacy"
             assert connection.execute(text("SELECT title FROM tasks WHERE id='task-1'")).scalar_one() == "Keep me"
             assert connection.execute(text("SELECT created_outside_roots FROM projects WHERE id='project-1'")).scalar_one() == 0
+            assert connection.execute(text("SELECT agent FROM tasks WHERE id='task-1'")).scalar_one() == "dsh"
     finally:
         engine.dispose()
         get_settings.cache_clear()

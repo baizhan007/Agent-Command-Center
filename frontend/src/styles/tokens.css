@@ -1,0 +1,327 @@
+:root {
+  color-scheme: dark;
+  font-family: 'Segoe UI Variable', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --font-mono: 'Cascadia Code', Consolas, monospace;
+  --bg: #111315;
+  --side: #16181b;
+  --panel: #1a1d20;
+  --panel-2: #22262a;
+  --surface-input: #141619;
+  --surface-hover: #2b3035;
+  --surface-selected: #24362f;
+  --line: #3b4249;
+  --line-soft: #2c3238;
+  --text: #eef0f2;
+  --muted: #b0b7c0;
+  --quiet: #9ca6b2;
+  --mint: #a7e8bc;
+  --mint-hover: #bff5d0;
+  --on-mint: #102218;
+  --success: #8bd3ad;
+  --success-surface: #20362b;
+  --blue: #a0c8ef;
+  --blue-surface: #22313d;
+  --amber: #efd091;
+  --amber-surface: #322c20;
+  --coral: #f2aaa3;
+  --danger-surface: #352420;
+  --scrim: #080d0bd9;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --motion-feedback: 140ms;
+  --motion-enter: 220ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--text);
+  background: var(--bg);
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100dvh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+button,
+a {
+  touch-action: manipulation;
+}
+button {
+  cursor: pointer;
+}
+button,
+a,
+input,
+select,
+textarea {
+  transition:
+    color var(--motion-feedback),
+    background-color var(--motion-feedback),
+    border-color var(--motion-feedback);
+}
+button:disabled,
+fieldset:disabled button {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 4px;
+}
+input,
+select,
+textarea {
+  min-width: 0;
+  color: var(--text);
+  background: var(--surface-input);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+input,
+select {
+  min-height: 42px;
+  padding: 9px 12px;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--quiet);
+}
+input:disabled,
+select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+select {
+  padding-right: 24px;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+textarea {
+  padding: 12px;
+  min-height: 120px;
+  resize: vertical;
+}
+svg {
+  flex-shrink: 0;
+}
+a {
+  color: inherit;
+}
+h1,
+h2,
+h3,
+p {
+  overflow-wrap: anywhere;
+}
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+fieldset {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+::selection {
+  color: var(--on-mint);
+  background: var(--mint);
+}
+.muted {
+  color: var(--muted);
+}
+.text-success {
+  color: var(--success);
+}
+.text-error {
+  color: var(--coral);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 8px;
+  left: 8px;
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  color: var(--on-mint);
+  background: var(--mint);
+  transform: translateY(-160%);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+.button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 9px 16px;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.button.primary {
+  color: var(--on-mint);
+  background: var(--mint);
+  border-color: var(--mint);
+}
+.button.primary:hover:not(:disabled) {
+  background: var(--mint-hover);
+  border-color: var(--mint-hover);
+}
+.button.danger {
+  color: var(--coral);
+  background: var(--danger-surface);
+  border-color: var(--coral);
+}
+.button.danger:hover:not(:disabled) {
+  background: #4a2d29;
+}
+.button.secondary {
+  color: var(--text);
+  background: var(--panel-2);
+}
+.button.secondary:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--quiet);
+}
+.button.ghost {
+  color: var(--muted);
+  background: transparent;
+  border-color: transparent;
+}
+.button.ghost:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--panel-2);
+}
+.button.compact {
+  min-height: 36px;
+  padding: 7px 12px;
+  font-size: 12px;
+}
+.button:active:not(:disabled),
+.icon-button:active:not(:disabled) {
+  filter: brightness(0.9);
+}
+.icon-button {
+  width: 38px;
+  height: 38px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  background: transparent;
+  flex: 0 0 auto;
+}
+.icon-button:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface-hover);
+  border-color: var(--line);
+}
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--mint);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.text-button:hover {
+  color: var(--mint-hover);
+}
+.skeleton {
+  display: block;
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  animation: skeleton-pulse 1.5s ease-in-out infinite alternate;
+}
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+@keyframes skeleton-pulse {
+  to {
+    opacity: 0.45;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes dialog-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .icon-button {
+    width: 44px;
+    height: 44px;
+  }
+  .button.compact,
+  .text-button {
+    min-height: 44px;
+  }
+}

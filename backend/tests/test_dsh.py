@@ -14,6 +14,24 @@ def test_headless_command_uses_only_verified_local_flags():
     assert adapter.command("task")[-1] == "task"
 
 
+def test_selected_profile_is_passed_as_a_single_validated_argument(tmp_path, monkeypatch):
+    adapter = DshHeadlessAdapter("dsh.exe")
+    captured = {}
+
+    class Process:
+        pid = 123
+        returncode = 0
+
+        def communicate(self, input=None, timeout=None):
+            return "ok", ""
+
+    monkeypatch.setattr(subprocess, "Popen", lambda args, **kwargs: (captured.update(args=args) or Process()))
+    adapter.run("task", tmp_path, 10, profile="headless_alt")
+    assert captured["args"] == ["dsh.exe", "--profile", "headless_alt", "--json", "task"]
+    with pytest.raises(DshError, match="profile name"):
+        adapter.run("task", tmp_path, 10, profile="bad profile; command")
+
+
 def test_windows_shim_runs_through_cmd_and_reads_task_from_stdin(monkeypatch, tmp_path):
     adapter = DshHeadlessAdapter("dsh.cmd")
     shim = str(tmp_path / "DSH Desktop" / "dsh.cmd")

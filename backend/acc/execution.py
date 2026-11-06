@@ -5,6 +5,7 @@ from threading import BoundedSemaphore, Lock
 from sqlalchemy import select
 
 from .config import get_settings
+from .agents import load_agent_settings
 from .database import SessionLocal
 from .dsh import DshHeadlessAdapter, redact
 from .models import Project, Task, TaskRun
@@ -83,7 +84,8 @@ def execute_run(run_id: str) -> None:
                 if project is None or not is_authorized_project(project, settings.authorized_roots):
                     raise RuntimeError("Project path is no longer within ACC_ALLOWED_ROOTS")
                 result = DshHeadlessAdapter(settings.dsh_executable).run(
-                    f"{task.title}\n\n{task.description}", Path(project.path), settings.task_timeout_seconds, run.session_id,
+                    f"{task.title}\n\n{task.description}", Path(project.path), settings.task_timeout_seconds,
+                    run.session_id, load_agent_settings().get("dsh_profile") or "headless",
                 )
             finally:
                 semaphore.release()

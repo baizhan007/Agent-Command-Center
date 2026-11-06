@@ -1,3 +1,3 @@
 interface Window {
-  accDesktop?: { apiBaseUrl: string; apiToken: string }
+  accDesktop?: { apiBaseUrl: string; apiToken: string; platform?: string }
 }

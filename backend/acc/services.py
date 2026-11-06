@@ -9,15 +9,23 @@ def create_task_record(
     title: str,
     description: str,
     priority: int,
+    agent: str = "dsh",
+    parent_task_id: str | None = None,
 ) -> Task | None:
     project = session.get(Project, project_id)
     if project is None:
         return None
+    if parent_task_id:
+        parent = session.get(Task, parent_task_id)
+        if parent is None or parent.project_id != project_id:
+            return None
     task = Task(
         project_id=project.id,
         title=title.strip(),
         description=description.strip(),
         priority=priority,
+        agent=agent,
+        parent_task_id=parent_task_id,
     )
     session.add(task)
     session.commit()

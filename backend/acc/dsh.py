@@ -47,25 +47,27 @@ class DshHeadlessAdapter:
     def __init__(self, executable: str = "dsh"):
         self.executable = executable
 
-    def command(self, task_text: str, session_id: str | None = None) -> list[str]:
-        args = [self.executable, "--profile", "headless", "--json"]
+    def command(self, task_text: str, session_id: str | None = None, profile: str = "headless") -> list[str]:
+        args = [self.executable, "--profile", profile, "--json"]
         if session_id:
             args.extend(["--session-id", session_id])
         args.append(task_text)
         return args
 
-    def windows_shim_command(self, session_id: str | None = None) -> str:
+    def windows_shim_command(self, session_id: str | None = None, profile: str = "headless") -> str:
         executable = shutil.which(self.executable) or self.executable
-        command = [f'"{executable}"', "--profile", "headless", "--json"]
+        command = [f'"{executable}"', "--profile", profile, "--json"]
         if session_id:
             command.extend(["--session-id", session_id])
         command.append("-")
         comspec = os.environ.get("ComSpec", "cmd.exe")
         return f'{comspec} /d /s /c "{" ".join(command)}"'
 
-    def run(self, task_text: str, cwd: Path, timeout: int, session_id: str | None = None) -> DshResult:
+    def run(self, task_text: str, cwd: Path, timeout: int, session_id: str | None = None, profile: str = "headless") -> DshResult:
         if session_id and not re.fullmatch(r"[A-Za-z0-9_-]{1,160}", session_id):
             raise DshError("DSH session ID contains unsupported characters")
+        if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", profile):
+            raise DshError("DSH profile name contains unsupported characters")
         env = os.environ.copy()
         redaction_env = env.copy()
         env.pop("ACC_API_TOKEN", None)
@@ -80,7 +82,7 @@ class DshHeadlessAdapter:
             process_options["start_new_session"] = True
         executable = shutil.which(self.executable) or self.executable
         is_windows_batch = os.name == "nt" and Path(executable).suffix.lower() in {".cmd", ".bat"}
-        args = self.windows_shim_command(session_id) if is_windows_batch else self.command(task_text, session_id)
+        args = self.windows_shim_command(session_id, profile) if is_windows_batch else self.command(task_text, session_id, profile)
         try:
             process = subprocess.Popen(
                 args, cwd=str(cwd), env=env,

@@ -77,3 +77,32 @@ def test_mcp_rejects_unknown_or_unauthorized_tasks(mcp_db, tmp_path, monkeypatch
     with pytest.raises(ValueError, match="authorized"):
         mcp_server.start_task_run(task["id"])
     get_settings.cache_clear()
+
+
+def test_codex_mission_tracks_dsh_children_and_requires_review_completion(mcp_db, monkeypatch):
+    factory, project_id, _ = mcp_db
+    dispatched = []
+    monkeypatch.setattr(mcp_server._executor, "submit", lambda function, run_id: dispatched.append(run_id))
+
+    mission = json.loads(mcp_server.start_mission(project_id, "Ship feature", "Implement and verify it"))
+    child = json.loads(mcp_server.create_task(
+        project_id, "Inspect data layer", "Review the models", parent_task_id=mission["id"], agent="dsh",
+    ))
+    assert mission["agent"] == "codex"
+    assert mission["status"] == "running"
+    assert child["parent_task_id"] == mission["id"]
+    with pytest.raises(ValueError, match="assigned to Codex"):
+        mcp_server.start_task_run(mission["id"])
+
+    run = json.loads(mcp_server.start_task_run(child["id"]))
+    assert dispatched == [run["id"]]
+    with pytest.raises(ValueError, match="finish"):
+        mcp_server.finish_mission(mission["id"], "Integrated")
+
+    with factory() as session:
+        session.get(TaskRun, run["id"]).task.status = "completed"
+        session.commit()
+
+    finished = json.loads(mcp_server.finish_mission(mission["id"], "Reviewed and integrated"))
+    assert finished["status"] == "completed"
+    assert "Reviewed and integrated" in finished["description"]

@@ -41,6 +41,8 @@ def _task_dict(task: Task) -> dict[str, object]:
         description=task.description,
         status=task.status,
         priority=task.priority,
+        agent=task.agent,
+        parent_task_id=task.parent_task_id,
         created_at=task.created_at,
         updated_at=task.updated_at,
     ).model_dump(mode="json")
@@ -75,20 +77,54 @@ def list_tasks(project_id: str | None = None) -> str:
         return _json([_task_dict(task) for task in session.scalars(query).all()])
 
 
-def create_task(project_id: str, title: str, description: str, priority: int = 2) -> str:
+def create_task(project_id: str, title: str, description: str, priority: int = 2,
+                parent_task_id: str | None = None, agent: str = "dsh") -> str:
     """Create a durable ACC task for a registered project."""
     payload = TaskCreate(
         project_id=project_id,
         title=title,
         description=description,
         priority=priority,
+        parent_task_id=parent_task_id,
+        agent=agent,
     )
     with SessionLocal() as session:
         task = create_task_record(
             session, payload.project_id, payload.title, payload.description, payload.priority,
+            payload.agent, payload.parent_task_id,
         )
         if task is None:
             raise ValueError("Project not found")
+        return _json(_task_dict(task))
+
+
+def start_mission(project_id: str, title: str, goal: str) -> str:
+    """Register the current Codex-led mission as a root in the ACC agent tree."""
+    payload = TaskCreate(project_id=project_id, title=title, description=goal, agent="codex")
+    with SessionLocal() as session:
+        task = create_task_record(session, payload.project_id, payload.title, payload.description,
+                                  payload.priority, payload.agent)
+        if task is None:
+            raise ValueError("Project not found")
+        task.status = "running"
+        session.commit()
+        session.refresh(task)
+        return _json(_task_dict(task))
+
+
+def finish_mission(task_id: str, result: str) -> str:
+    """Mark a Codex root mission complete after integrating and reviewing delegated work."""
+    with SessionLocal() as session:
+        task = session.get(Task, task_id)
+        if task is None or task.agent != "codex" or task.parent_task_id:
+            raise ValueError("Codex root mission not found")
+        children = session.scalars(select(Task).where(Task.parent_task_id == task_id)).all()
+        if any(child.status not in {"completed", "cancelled"} for child in children):
+            raise ValueError("All delegated tasks must finish before the mission can be completed")
+        task.description = f"{task.description}\n\nFinal integration: {result}"[-20000:]
+        task.status = "completed"
+        session.commit()
+        session.refresh(task)
         return _json(_task_dict(task))
 
 
@@ -99,6 +135,8 @@ def start_task_run(task_id: str, session_id: str | None = None) -> str:
         task = session.get(Task, task_id)
         if task is None:
             raise ValueError("Task not found")
+        if task.agent != "dsh":
+            raise ValueError("Task is assigned to Codex, not DSH")
         project = session.get(Project, task.project_id)
         if project is None or not is_authorized_project(project, get_settings().authorized_roots):
             raise ValueError("Project path is no longer available or authorized")
@@ -155,6 +193,9 @@ for _name, _function, _title, _read_only in [
     ("acc_list_task_runs", list_task_runs, "List runs for an ACC task", True),
 ]:
     mcp.tool(name=_name, title=_title, annotations={"readOnlyHint": _read_only})(_function)
+
+mcp.tool(name="acc_start_mission", title="Register a Codex-led mission", annotations={"readOnlyHint": False})(start_mission)
+mcp.tool(name="acc_finish_mission", title="Complete an integrated Codex mission", annotations={"readOnlyHint": False})(finish_mission)
 
 
 if __name__ == "__main__":

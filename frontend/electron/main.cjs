@@ -1,4 +1,4 @@
-const { app, BrowserWindow, protocol } = require('electron')
+const { app, BrowserWindow, Menu, nativeTheme, protocol } = require('electron')
 const { spawn } = require('node:child_process')
 const { randomBytes } = require('node:crypto')
 const { existsSync, mkdirSync, readFileSync, writeFileSync } = require('node:fs')
@@ -73,7 +73,12 @@ function startApi(settings) {
 
 function createWindow(settings) {
   mainWindow = new BrowserWindow({ width: 1440, height: 920, minWidth: 900, minHeight: 640,
-    backgroundColor: '#151816', title: 'Agent Command Center', webPreferences: {
+    backgroundColor: '#111315', title: 'Agent Command Center', autoHideMenuBar: true,
+    ...(process.platform === 'win32' ? {
+      titleBarStyle: 'hidden',
+      titleBarOverlay: { color: '#16181b', symbolColor: '#b0b7c0', height: 36 },
+    } : {}),
+    webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false,
       additionalArguments: [`--acc-api-token=${settings.apiToken}`, `--acc-api-port=${port}`],
     } })
@@ -82,6 +87,10 @@ function createWindow(settings) {
 
 app.whenReady().then(async () => {
   try {
+    if (process.platform === 'win32') {
+      nativeTheme.themeSource = 'dark'
+      Menu.setApplicationMenu(null)
+    }
     const appRoot = path.resolve(__dirname, '..', 'dist')
     protocol.handle('acc', async request => {
       const pathname = decodeURIComponent(new URL(request.url).pathname)

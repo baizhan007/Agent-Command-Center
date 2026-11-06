@@ -3,6 +3,7 @@ from pathlib import Path
 import shutil
 import sys
 import subprocess
+import shutil
 
 from alembic import command
 from alembic.config import Config
@@ -12,10 +13,11 @@ from sqlalchemy import create_engine, func, inspect, select
 from sqlalchemy.orm import Session
 
 from .config import get_settings
+from .agents import codex_models, codex_status, dsh_profiles, load_agent_settings, save_agent_settings, start_codex, stop_codex
 from .database import get_session
 from .execution import execute_run, is_authorized_path, is_authorized_project
 from .models import Project, Task, TaskRun
-from .schemas import DashboardRead, ProjectCreate, ProjectRead, TaskCreate, TaskRead, TaskRunCreate, TaskRunRead
+from .schemas import AgentSettingsPatch, CodexStart, DashboardRead, ProjectCreate, ProjectRead, TaskCreate, TaskRead, TaskRunCreate, TaskRunRead
 from .services import create_task_record, queue_task_run
 
 
@@ -115,6 +117,57 @@ def health():
     return {"ok": True, "phase": 2, "auth_required": bool(settings.api_token), "max_parallel": settings.max_parallel}
 
 
+@app.get("/api/agents", dependencies=[Depends(require_auth)])
+def get_agent_status(session: Session = Depends(get_session)):
+    profiles = dsh_profiles()
+    selected = load_agent_settings()
+    active_runs = session.scalar(select(func.count()).select_from(TaskRun).where(TaskRun.status.in_(["queued", "running"]))) or 0
+    return {
+        "settings": selected,
+        "codex": {**codex_status(), "models": codex_models()},
+        "dsh": {
+            "installed": shutil.which(get_settings().dsh_executable) is not None,
+            "running_tasks": active_runs,
+            "profiles": profiles,
+            "status": "running" if active_runs else "ready" if shutil.which(get_settings().dsh_executable) else "unavailable",
+        },
+    }
+
+
+@app.patch("/api/agents/settings", dependencies=[Depends(require_auth)])
+def patch_agent_settings(payload: AgentSettingsPatch):
+    changes = payload.model_dump(exclude_unset=True)
+    if "codex_model" in changes and changes["codex_model"] is not None:
+        available = {item["id"] for item in codex_models()}
+        if changes["codex_model"] not in available:
+            raise HTTPException(status_code=422, detail="Selected Codex model is not in the local model catalog")
+    if "dsh_profile" in changes and changes["dsh_profile"] is not None:
+        available = {item["id"] for item in dsh_profiles()}
+        if changes["dsh_profile"] not in available:
+            raise HTTPException(status_code=422, detail="Selected DSH profile is not available locally")
+    return {"settings": save_agent_settings(**changes)}
+
+
+@app.post("/api/agents/codex/start", dependencies=[Depends(require_auth)])
+def launch_codex(payload: CodexStart, session: Session = Depends(get_session)):
+    project = session.get(Project, payload.workspace_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+    if not is_authorized_project(project, get_settings().authorized_roots):
+        raise HTTPException(status_code=403, detail="Workspace path is no longer available or authorized")
+    try:
+        return {"codex": start_codex(Path(project.path), load_agent_settings().get("codex_model"))}
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from None
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from None
+
+
+@app.post("/api/agents/codex/stop", dependencies=[Depends(require_auth)])
+def shutdown_codex():
+    return {"codex": stop_codex()}
+
+
 @app.get("/api/dashboard", response_model=DashboardRead, dependencies=[Depends(require_auth)])
 def dashboard(session: Session = Depends(get_session)):
     count = lambda status: session.scalar(select(func.count()).select_from(Task).where(Task.status == status)) or 0
@@ -190,7 +243,8 @@ def delete_project(project_id: str, session: Session = Depends(get_session)):
 def task_read(task: Task) -> TaskRead:
     return TaskRead(id=task.id, project_id=task.project_id, project_name=task.project.name,
                     title=task.title, description=task.description, status=task.status,
-                    priority=task.priority, created_at=task.created_at, updated_at=task.updated_at)
+                    priority=task.priority, agent=task.agent, parent_task_id=task.parent_task_id,
+                    created_at=task.created_at, updated_at=task.updated_at)
 
 
 @app.get("/api/tasks", response_model=list[TaskRead], dependencies=[Depends(require_auth)])
@@ -205,6 +259,7 @@ def list_tasks(session: Session = Depends(get_session), project_id: str | None =
 def create_task(payload: TaskCreate, session: Session = Depends(get_session)):
     task = create_task_record(
         session, payload.project_id, payload.title, payload.description, payload.priority,
+        payload.agent, payload.parent_task_id,
     )
     if task is None:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -224,6 +279,8 @@ def start_task_run(task_id: str, background_tasks: BackgroundTasks, payload: Tas
     task = session.get(Task, task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
+    if task.agent != "dsh":
+        raise HTTPException(status_code=400, detail="Task is assigned to Codex, not DSH")
     project = session.get(Project, task.project_id)
     if not project or not is_authorized_project(project, get_settings().authorized_roots):
         raise HTTPException(status_code=403, detail="Project path is no longer available or authorized")

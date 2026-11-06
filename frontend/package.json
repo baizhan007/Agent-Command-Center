@@ -10,7 +10,8 @@
     "desktop:dev": "concurrently -k \"npm run dev\" \"wait-on tcp:5173 && electron .\"",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "desktop:dist": "npm run build && electron-builder --win dir"
+    "desktop:dist": "npm run build && electron-builder --win dir",
+    "desktop:installer": "npm run build && electron-builder --win nsis"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
@@ -60,6 +61,16 @@
       ],
       "artifactName": "ACC-Desktop-${version}.${ext}",
       "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "displayLanguageSelector": true,
+      "installerLanguages": [
+        "zh_CN",
+        "en_US"
+      ]
     }
   }
 }

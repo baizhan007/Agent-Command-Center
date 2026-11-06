@@ -9,7 +9,7 @@ Agent Command Center（ACC）是一个本地优先的项目与 AI Agent 任务�
 - 提供 Windows 桌面程序与本地 Web 控制台，并支持通过 MCP 管理 ACC 任务。
 - 以本机用户权限运行 Agent；项目目录授权范围不等同于操作系统沙箱。
 
-安装与开发步骤请参阅下方英文说明。Windows 桌面安装包可从 [GitHub Releases](https://github.com/baizhan007/Agent-Command-Center/releases) 获取。
+安装与开发指南支持一键切换中英文：[在线双语指南](https://baizhan007.github.io/Agent-Command-Center/)。Windows 桌面安装包可从 [GitHub Releases](https://github.com/baizhan007/Agent-Command-Center/releases) 获取。
 
 ## English Introduction
 
@@ -20,20 +20,33 @@ Agent Command Center (ACC) is a local-first project and AI agent task control pl
 - Includes a Windows desktop app, a local web console, and MCP tools for managing ACC tasks.
 - Agents run with the current user's permissions; project path allowlists are not OS-level sandboxes.
 
-See the sections below for installation and development instructions. Windows desktop builds are available from [GitHub Releases](https://github.com/baizhan007/Agent-Command-Center/releases).
+Switch languages in the [bilingual installation and development guide](https://baizhan007.github.io/Agent-Command-Center/). Windows desktop builds are available from [GitHub Releases](https://github.com/baizhan007/Agent-Command-Center/releases).
 
 ## Full Documentation (English)
 
 ACC is a local project and task control plane. The FastAPI API persists projects, tasks, and DSH run records in SQLite; the React console shows repository state, task status, and service health.
 
-## Requirements
+## 环境要求 | Requirements
+
+- Windows 11 和 PowerShell
+- Python 3.11+
+- Node.js 20.19+、22.12+ 或 24+
+- Git for Windows
 
 - Windows 11 and PowerShell
 - Python 3.11+
 - Node.js 20.19+, 22.12+, or 24+ for Vite; installed Node 22.12.0 is compatible
 - Git for Windows
 
-## Install and run
+## 本地安装与运行 | Install and Run
+
+### 中文
+
+在项目根目录打开 PowerShell。运行 `install.ps1` 安装依赖并生成本地 API Token；在 `.env` 中设置可信工作区父目录 `ACC_ALLOWED_ROOTS`，然后运行 `start.ps1`。浏览器访问 <http://127.0.0.1:5173>，使用 `stop.ps1` 停止服务。
+
+### English
+
+Open PowerShell in the repository root. Run `install.ps1` to install dependencies and generate a local API token. Set `ACC_ALLOWED_ROOTS` in `.env` to trusted workspace parent directories, then run `start.ps1`. Open <http://127.0.0.1:5173>; use `stop.ps1` to stop the services.
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
@@ -43,9 +56,15 @@ notepad .env
 .\start.ps1
 ```
 
-Open <http://127.0.0.1:5173>. Stop both local services with `.\stop.ps1`. API health is available at `http://127.0.0.1:8765/api/health`.
+## 桌面应用 | Desktop Application
 
-## Desktop application
+### 中文
+
+从 [Releases](https://github.com/baizhan007/Agent-Command-Center/releases) 下载 `ACC-Desktop-0.1.0-Setup.exe`，启动后选择“简体中文”或“English”，并按向导完成安装。也可下载 ZIP 便携版，解压后运行 `Agent Command Center.exe`。
+
+### English
+
+Download `ACC-Desktop-0.1.0-Setup.exe` from [Releases](https://github.com/baizhan007/Agent-Command-Center/releases), choose `简体中文` or `English`, and follow the installer wizard. The portable ZIP is also available; extract it and run `Agent Command Center.exe`.
 
 The Windows desktop app runs the ACC API locally and opens the console in its own window. Install dependencies with `.\install.ps1`, then build the portable desktop package with `.\build-desktop.ps1`. The ZIP is written to `frontend\release`; extract it and run `Agent Command Center.exe`. For desktop development, run `npm run desktop:dev` from `frontend` after `.\install.ps1`. The desktop app keeps its database, token, and settings under the current user's application data directory. In Projects, choose either to register an existing Git repository beneath an authorized root or create a new local repository anywhere the current Windows user can write. Missing parent folders are created automatically, and the target folder must be new. New repositories are initialized with `git init`; ACC does not publish them to GitHub.
 
@@ -82,13 +101,34 @@ DSH task runs use the selected local profile, defaulting to `headless`. ACC show
 
 Dashboard token and cost metrics remain unknown rather than simulated. Worktrees, cancellation, streaming, usage, and cost accounting are not implemented.
 
-## Development
+## 开发与构建 | Development
+
+### 中文
+
+依赖安装完成后，在仓库根目录运行后端测试、前端构建和桌面开发环境：
 
 ```powershell
 cd backend
 .\.venv\Scripts\python.exe -m pytest
 cd ..\frontend
 npm run build
+npm run desktop:dev
 ```
+
+回到仓库根目录运行 `build-desktop.ps1`，可同时生成 ZIP 便携版和中英双语安装程序。
+
+### English
+
+After installing dependencies, run the backend tests, frontend build, and desktop development environment:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m pytest
+cd ..\frontend
+npm run build
+npm run desktop:dev
+```
+
+Run `build-desktop.ps1` from the repository root to create both the portable ZIP and bilingual Windows installer.
 
 Architecture and next-phase boundaries: [docs/architecture.md](docs/architecture.md). Environment setup and troubleshooting: [docs/troubleshooting.md](docs/troubleshooting.md).

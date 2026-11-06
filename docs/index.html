@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f2f5f2">
+    <meta name="description" content="ACC installation and development guide in Simplified Chinese and English.">
+    <title>ACC | 安装与开发指南</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Segoe UI Variable", "Segoe UI", "Microsoft YaHei", sans-serif;
+        color: #17241d;
+        background: #f2f5f2;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        --ink: #17241d;
+        --muted: #53645a;
+        --line: #d4ddd6;
+        --paper: #fbfcfa;
+        --green: #1c6545;
+        --green-wash: #e1eee6;
+        --blue: #285e78;
+        --code: #14221b;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 320px; line-height: 1.65; }
+      a { color: var(--green); text-underline-offset: 3px; }
+      a:hover { color: #10472e; }
+      button { font: inherit; }
+      button:focus-visible, a:focus-visible { outline: 3px solid #3988a4; outline-offset: 3px; }
+      .topline { height: 5px; background: linear-gradient(90deg, var(--green) 0 68%, var(--blue) 68% 100%); }
+      header, main, footer { width: min(100% - 40px, 920px); margin-inline: auto; }
+      header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 28px 0 24px; border-bottom: 1px solid var(--line); }
+      .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+      .brand-mark { display: grid; place-items: center; flex: 0 0 42px; aspect-ratio: 1; border-radius: 8px; background: var(--green); color: white; font-size: 17px; font-weight: 750; }
+      .brand-name { color: var(--ink); font-weight: 700; line-height: 1.2; }
+      .brand-subtitle { color: var(--muted); font-size: 12px; }
+      .language-switch { display: inline-flex; flex: 0 0 auto; gap: 3px; padding: 3px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); }
+      .language-switch button { min-width: 88px; min-height: 40px; padding: 7px 12px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; }
+      .language-switch button[aria-pressed="true"] { background: var(--green); color: white; }
+      main { padding: 44px 0 72px; }
+      .eyebrow { margin: 0 0 8px; color: var(--green); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+      h1 { margin: 0; font-size: 34px; line-height: 1.2; }
+      .intro { max-width: 680px; margin: 12px 0 0; color: var(--muted); font-size: 16px; }
+      .release-link { display: inline-flex; align-items: center; min-height: 44px; margin-top: 18px; padding: 0 15px; border: 1px solid #a8c8b4; border-radius: 6px; background: var(--green-wash); color: #164c33; font-weight: 650; text-decoration: none; }
+      .release-link:hover { background: #d4e8db; }
+      .guide { margin-top: 38px; }
+      .guide-section { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 36px; padding: 27px 0 30px; border-top: 1px solid var(--line); }
+      .section-title { margin: 0; font-size: 19px; line-height: 1.4; }
+      .section-index { display: block; margin-bottom: 6px; color: var(--blue); font-family: Consolas, monospace; font-size: 12px; }
+      .section-body { min-width: 0; }
+      .section-body p { margin: 0 0 12px; color: var(--muted); }
+      .section-body p:last-child { margin-bottom: 0; }
+      ul { margin: 0; padding-left: 20px; color: var(--muted); }
+      li + li { margin-top: 5px; }
+      pre { overflow-x: auto; margin: 14px 0; padding: 16px 18px; border-radius: 6px; background: var(--code); color: #e4f0e8; font: 13px/1.65 Consolas, "Cascadia Code", monospace; tab-size: 2; }
+      code { font-family: Consolas, "Cascadia Code", monospace; }
+      p code { padding: 2px 5px; border-radius: 3px; background: #e5ebe6; color: #183a29; font-size: .92em; }
+      .note { margin-top: 12px !important; padding-left: 12px; border-left: 3px solid #c49a43; }
+      footer { padding: 18px 0 32px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+      [hidden] { display: none !important; }
+      @media (max-width: 640px) {
+        header, main, footer { width: min(100% - 32px, 920px); }
+        header { align-items: flex-start; flex-direction: column; gap: 16px; padding-top: 20px; }
+        .language-switch { width: 100%; }
+        .language-switch button { flex: 1; }
+        main { padding-top: 32px; }
+        h1 { font-size: 28px; }
+        .guide { margin-top: 28px; }
+        .guide-section { grid-template-columns: 1fr; gap: 12px; padding: 22px 0 24px; }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .guide-section { animation: arrive 300ms ease-out both; }
+        @keyframes arrive { from { opacity: .65; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topline" aria-hidden="true"></div>
+    <header>
+      <div class="brand" aria-label="Agent Command Center">
+        <span class="brand-mark" aria-hidden="true">A</span>
+        <span><span class="brand-name">Agent Command Center</span><br><span class="brand-subtitle">ACC · Setup & Development</span></span>
+      </div>
+      <nav class="language-switch" aria-label="Language" role="group">
+        <button type="button" data-set-language="zh" aria-pressed="true">中文</button>
+        <button type="button" data-set-language="en" aria-pressed="false">English</button>
+      </nav>
+    </header>
+    <main>
+      <article data-language="zh">
+        <p class="eyebrow">安装 · 运行 · 开发</p>
+        <h1>ACC 安装与开发指南</h1>
+        <p class="intro">一页完成本地运行、Windows 桌面安装和开发构建。点击右上角即可切换 English。</p>
+        <a class="release-link" href="https://github.com/baizhan007/Agent-Command-Center/releases">下载 Windows 桌面版</a>
+        <div class="guide">
+          <section class="guide-section">
+            <h2 class="section-title"><span class="section-index">01 / 准备</span>环境要求</h2>
+            <div class="section-body"><ul><li>Windows 11 与 PowerShell</li><li>Python 3.11</li><li>Node.js 20.19+、22.12+ 或 24+</li><li>Git for Windows</li></ul></div>
+          </section>
+          <section class="guide-section">
+            <h2 class="section-title"><span class="section-index">02 / 本地服务</span>安装并运行 Web 控制台</h2>
+            <div class="section-body">
+              <p>在仓库根目录打开 PowerShell。安装依赖并生成本地配置：</p>
+              <pre><code>Set-ExecutionPolicy -Scope Process Bypass
+.\install.ps1
+notepad .env</code></pre>
+              <p>在 <code>.env</code> 中设置可信工作区父目录 <code>ACC_ALLOWED_ROOTS</code>，保存后启动服务：</p>
+              <pre><code>.\start.ps1</code></pre>
+              <p>访问 <a href="http://127.0.0.1:5173">http://127.0.0.1:5173</a>。停止服务：<code> .\stop.ps1</code>。</p>
+            </div>
+          </section>
+          <section class="guide-section">
+            <h2 class="section-title"><span class="section-index">03 / Windows</span>安装桌面应用</h2>
+            <div class="section-body">
+              <p>从 Releases 下载 <code>ACC-Desktop-0.1.0-Setup.exe</code>。启动后选择“简体中文”或“English”，按向导完成安装；安装程序默认安装到当前用户目录，也可选择安装路径。</p>
+              <p>便携版本：下载 <code>ACC-Desktop-0.1.0.zip</code>，解压后运行 <code>Agent Command Center.exe</code>。</p>
+              <p class="note">当前安装程序未签名，Windows 可能显示安全提示。请确认文件来自本项目的 GitHub Releases。</p>
+            </div>
+          </section>
+          <section class="guide-section">
+            <h2 class="section-title"><span class="section-index">04 / 开发</span>运行测试与开发环境</h2>
+            <div class="section-body">
+              <p>安装依赖后，从仓库根目录运行后端测试与前端构建：</p>
+              <pre><code>cd backend
+.\.venv\Scripts\python.exe -m pytest
+cd ..\frontend
+npm run build</code></pre>
+              <p>启动桌面开发环境：<code>npm run desktop:dev</code>（在 <code>frontend</code> 目录执行）。</p>
+              <p>从仓库根目录运行 <code> .\build-desktop.ps1</code>，生成 ZIP 便携版和中英双语 Windows 安装程序。</p>
+            </div>
+          </section>
+        </div>
+      </article>
+      <article data-language="en" hidden>
+        <p class="eyebrow">INSTALL · RUN · DEVELOP</p>
+        <h1>ACC Setup & Development</h1>
+        <p class="intro">Use this guide to run the local console, install the Windows desktop app, and build from source. Select 中文 above to switch languages.</p>
+        <a class="release-link" href="https://github.com/baizhan007/Agent-Command-Center/releases">Download for Windows</a>
+        <div class="guide">
+          <section class="guide-section">
+            <h2 class="section-title"><span class="section-index">01 / PREREQUISITES</span>Requirements</h2>
+            <div class="section-body"><ul><li>Windows 11 and PowerShell</li><li>Python 3.11</li><li>Node.js 20.19+, 22.12+, or 24+</li><li>Git for Windows</li></ul></div>
+          </section>
+          <section class="guide-section">
+            <h2 class="section-title"><span class="section-index">02 / LOCAL SERVICE</span>Install and run the web console</h2>
+            <div class="section-body">
+              <p>Open PowerShell in the repository root. Install dependencies and create the local configuration:</p>
+              <pre><code>Set-ExecutionPolicy -Scope Process Bypass
+.\install.ps1
+notepad .env</code></pre>
+              <p>Set <code>ACC_ALLOWED_ROOTS</code> in <code>.env</code> to trusted workspace parent directories, save the file, and start ACC:</p>
+              <pre><code>.\start.ps1</code></pre>
+              <p>Open <a href="http://127.0.0.1:5173">http://127.0.0.1:5173</a>. Stop the services with <code> .\stop.ps1</code>.</p>
+            </div>
+          </section>
+          <section class="guide-section">
+            <h2 class="section-title"><span class="section-index">03 / WINDOWS</span>Install the desktop app</h2>
+            <div class="section-body">
+              <p>Download <code>ACC-Desktop-0.1.0-Setup.exe</code> from Releases. Choose <code>简体中文</code> or <code>English</code> in the installer and follow the wizard. It installs for the current user by default and lets you choose the destination folder.</p>
+              <p>Portable version: download <code>ACC-Desktop-0.1.0.zip</code>, extract it, and run <code>Agent Command Center.exe</code>.</p>
+              <p class="note">The current installer is unsigned, so Windows may show a security warning. Verify that the file came from this project's GitHub Releases.</p>
+            </div>
+          </section>
+          <section class="guide-section">
+            <h2 class="section-title"><span class="section-index">04 / DEVELOPMENT</span>Test and build</h2>
+            <div class="section-body">
+              <p>After installing dependencies, run backend tests and build the frontend from the repository root:</p>
+              <pre><code>cd backend
+.\.venv\Scripts\python.exe -m pytest
+cd ..\frontend
+npm run build</code></pre>
+              <p>Start the desktop development environment with <code>npm run desktop:dev</code> from the <code>frontend</code> directory.</p>
+              <p>Run <code> .\build-desktop.ps1</code> from the repository root to create the portable ZIP and bilingual Windows installer.</p>
+            </div>
+          </section>
+        </div>
+      </article>
+    </main>
+    <footer><span data-footer="zh">ACC · 本地优先的项目与 Agent 工作台</span><span data-footer="en" hidden>ACC · Local-first project and agent workspace</span></footer>
+    <script>
+      (() => {
+        const buttons = [...document.querySelectorAll('[data-set-language]')]
+        const panels = [...document.querySelectorAll('article[data-language]')]
+        const footers = [...document.querySelectorAll('[data-footer]')]
+        const stored = localStorage.getItem('acc-guide-language')
+        const preferred = stored || (navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en')
+        const setLanguage = language => {
+          document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en'
+          buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.setLanguage === language)))
+          panels.forEach(panel => { panel.hidden = panel.dataset.language !== language })
+          footers.forEach(footer => { footer.hidden = footer.dataset.footer !== language })
+          document.title = language === 'zh' ? 'ACC | 安装与开发指南' : 'ACC | Setup & Development Guide'
+          localStorage.setItem('acc-guide-language', language)
+        }
+        buttons.forEach(button => button.addEventListener('click', () => setLanguage(button.dataset.setLanguage)))
+        setLanguage(preferred)
+      })()
+    </script>
+  </body>
+</html>

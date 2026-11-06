@@ -15,14 +15,21 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'Could not install frontend dependencies.' }
   & npm.cmd run desktop:dist
   if ($LASTEXITCODE -ne 0) { throw 'Could not build the Windows desktop app.' }
+  & npx.cmd electron-builder --win nsis
+  if ($LASTEXITCODE -ne 0) { throw 'Could not build the Windows installer.' }
   $PackageDir = Join-Path (Get-Location) 'release\win-unpacked'
   $PackageZip = Join-Path (Get-Location) 'release\ACC-Desktop-0.1.0.zip'
+  $Installer = Join-Path (Get-Location) 'release\ACC-Desktop-0.1.0.exe'
+  $InstallerCopy = Join-Path (Get-Location) 'release\ACC-Desktop-0.1.0-Setup.exe'
+  Copy-Item -LiteralPath $Installer -Destination $InstallerCopy -Force
   if (Test-Path $PackageZip) { Remove-Item -LiteralPath $PackageZip -Force }
   Compress-Archive -Path (Join-Path $PackageDir '*') -DestinationPath $PackageZip -CompressionLevel Optimal
 } finally { Pop-Location }
 $RootZip = Join-Path $Root 'ACC-Desktop-0.1.0.zip'
 Copy-Item -LiteralPath $PackageZip -Destination $RootZip -Force
+$RootInstaller = Join-Path $Root 'ACC-Desktop-0.1.0-Setup.exe'
+Copy-Item -LiteralPath $InstallerCopy -Destination $RootInstaller -Force
 $ExtractedDir = Join-Path $Root 'ACC-Desktop-0.1.0'
 New-Item -ItemType Directory -Path $ExtractedDir -Force | Out-Null
 Copy-Item -Path (Join-Path $PackageDir '*') -Destination $ExtractedDir -Recurse -Force
-Write-Host "Desktop package created and synchronized to $RootZip and $ExtractedDir" -ForegroundColor Green
+Write-Host "Desktop package created: $RootZip, $RootInstaller, and $ExtractedDir" -ForegroundColor Green

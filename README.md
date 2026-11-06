@@ -1,5 +1,18 @@
 # Agent Command Center (ACC)
 
+## 中文简介
+
+Agent Command Center（ACC）是一个本地优先的项目与 AI Agent 任务控制中心。它将多个 Git 工作区、Codex 主任务、DSH 执行任务和运行记录集中在一个桌面与 Web 控制台中，帮助你查看任务进度、检查运行结果，并管理本地 Agent 配置。
+
+- 使用 FastAPI、SQLite 和 React 构建，数据默认保存在本机。
+- 支持项目与任务管理、Codex/DSH 协作层级、运行历史和结果查看。
+- 提供 Windows 桌面程序与本地 Web 控制台，并支持通过 MCP 管理 ACC 任务。
+- 以本机用户权限运行 Agent；项目目录授权范围不等同于操作系统沙箱。
+
+安装与开发步骤请参阅下方英文说明。Windows 桌面安装包可从 [GitHub Releases](https://github.com/baizhan007/Agent-Command-Center/releases) 获取。
+
+## English
+
 ACC is a local project and task control plane. The FastAPI API persists projects, tasks, and DSH run records in SQLite; the React console shows repository state, task status, and service health.
 
 ## Requirements
